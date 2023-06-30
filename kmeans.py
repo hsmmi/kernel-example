@@ -7,7 +7,11 @@ from sklearn.metrics import confusion_matrix
 
 class kmeans:
     def __init__(
-        self, k: int, max_iter: int = 100, kernel_type: kernel = None
+        self,
+        k: int,
+        max_iter: int = 100,
+        kernel_type: kernel = None,
+        n_dim: int = 3,
     ):
         self.k = k
         self.max_iter = max_iter
@@ -15,6 +19,7 @@ class kmeans:
         if self.kernel_type is not None:
             self.kernel_type = kernel_type
         self.centroids = {}
+        self.n_dim = n_dim
 
     def fit(self, train_data_s, labels, kernel_type: kernel = None):
         if self.kernel_type is None and kernel_type is None:
@@ -69,14 +74,13 @@ class kmeans:
                 current_centroid = self.centroids[centroid]
 
                 # check if the centroids have moved more than 0.001%
-                if (
-                    np.sum(
-                        abs(current_centroid - prev_centroid)
-                        / prev_centroid
-                        * 100.0
-                    )
-                    > 0.001
-                ):
+                precent_error = np.sum(
+                    abs(current_centroid - prev_centroid)
+                    / prev_centroid
+                    * 100.0
+                )
+
+                if precent_error > 0.001:
                     optimized = False
 
             if optimized:
@@ -87,7 +91,7 @@ class kmeans:
             [
                 [
                     self.kernel_type.distance(centroid, test_data)
-                    for centroid in self.centroids
+                    for centroid in self.centroids.values()
                 ]
                 for test_data in test_data_s
             ]
@@ -97,6 +101,36 @@ class kmeans:
         clusters = np.argmin(distances, axis=1)
 
         return clusters
+
+    def evaluate(self, y_test: list, predictions: list):
+        # Accuracy using confusion matrix
+        conf_mat = confusion_matrix(y_test, predictions)
+
+        # Reassign the labels
+        new_labels = np.argmax(conf_mat, axis=1)
+
+        # rearrange the confusion matrix
+        conf_mat = conf_mat[new_labels]
+
+        TP, FP, FN, TN = (
+            conf_mat[0][0],
+            conf_mat[0][1],
+            conf_mat[1][0],
+            conf_mat[1][1],
+        )
+        # Accuracy
+        accuracy = (TP + TN) / (TP + FP + FN + TN)
+
+        # Precision
+        precision = TP / (TP + FP)
+
+        # Recall
+        recall = TP / (TP + FN)
+
+        # F1 Score
+        f1_score = 2 * (precision * recall) / (precision + recall)
+
+        return np.round([accuracy, precision, recall, f1_score], self.n_dim)
 
 
 def sample():
@@ -117,10 +151,6 @@ def sample():
     predictions = []
     for i in range(len(X_test)):
         predictions.append(clf.predict(X_test[i]))
-
-    # Accuracy using confusion matrix
-    conf_mat = confusion_matrix(y_test, predictions)
-    print(conf_mat)
 
 
 # sample()

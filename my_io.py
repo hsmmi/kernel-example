@@ -19,4 +19,12 @@ class my_io:
             data.append(row[:-1])
             labels.append(row[-1])
 
-        return np.array(data), np.array(labels)
+        data = np.array(data)
+        labels = np.array(labels)
+
+        # Y_test is not nan
+        labels = labels[~np.isnan(labels)]
+        if len(labels) == 0:
+            print("No labels found")
+
+        return data, labels

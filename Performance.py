@@ -9,6 +9,7 @@ from sklearn.metrics import (
     recall_score,
 )
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 # from sklearn.preprocessing import MinMaxScaler
 
@@ -24,6 +25,7 @@ class Performance:
         labels: np.ndarray,
         test_size: float = 0.3,
         k: int = 10,
+        n_dim: int = 2,
     ) -> list[float]:
         """
         Returns the average performance of a model
@@ -38,15 +40,9 @@ class Performance:
         avg_recall = 0
         avg_time = 0
 
-        # # Scaler
-        # scaler = StandardScaler()
-        # scaler.fit_transform(data)
-        # scaler.fit_transform(labels)
-
-        # # Normalization
-        # scaler = MinMaxScaler()
-        # scaler.fit_transform(data)
-        # scaler.fit_transform(labels)
+        # Normalization
+        scaler = MinMaxScaler()
+        scaler.fit_transform(data)
 
         # Start time
         start = time.time()
@@ -63,6 +59,8 @@ class Performance:
             # Predict
             predictions = model.predict(X_test)
 
+            # Evaluate
+            result = model.evaluate(y_test, predictions)
             # Measuring performance
             avg_accuracy_score += accuracy_score(y_test, predictions)
             avg_f1_score += f1_score(
@@ -75,10 +73,6 @@ class Performance:
             avg_time += time.time() - start
 
         # Return average performance
-        return [
-            avg_accuracy_score / k,
-            avg_f1_score / k,
-            avg_precision_score / k,
-            avg_recall / k,
-            avg_time / k,
-        ]
+        # result = model.evaluate(y_test, predictions) + [avg_time / k]
+        result = np.hstack((model.evaluate(y_test, predictions), avg_time / k))
+        return np.round(result, n_dim)

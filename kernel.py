@@ -9,7 +9,7 @@ class kernel:
         return self.euclidean_distance(x, xp)
 
     def linear_kernel(self, x: np.ndarray, xp: np.ndarray):
-        return x @ x.T + xp @ xp.T - 2 * x @ xp.T
+        return x @ xp.T
 
     def polynomial_kernel(self, x: np.ndarray, xp: np.ndarray, d: int):
         return (self.linear_kernel(x, xp)) ** d
@@ -23,11 +23,26 @@ class kernel:
     def distance(self, x: np.ndarray, xp: np.ndarray, sigma: float = 1.0):
         if self.kernel_type == "simple":
             return self.simple_kernel(x, xp)
+
         elif self.kernel_type == "linear":
-            return self.linear_kernel(x, xp)
+            return (
+                self.linear_kernel(x, x)
+                + self.linear_kernel(xp, xp)
+                - 2 * self.linear_kernel(x, xp)
+            )
+
         elif self.kernel_type == "polynomial":
-            return self.polynomial_kernel(x, xp)
+            return (
+                self.polynomial_kernel(x, x)
+                + self.polynomial_kernel(xp, xp)
+                - 2 * self.polynomial_kernel(x, xp)
+            )
+
         elif self.kernel_type == "RBF":
-            return self.kernel_RBF(x, xp, sigma)
+            return (
+                self.kernel_RBF(x, x)
+                + self.kernel_RBF(xp, xp)
+                - 2 * self.kernel_RBF(x, xp)
+            )
         else:
             raise ValueError("Kernel type not found")
