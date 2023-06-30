@@ -10,19 +10,21 @@ class knn:
         self.k = k
         self.kernel_type = kernel_type
         if self.kernel_type is None:
-            self.kernel_type = kernel()
+            self.kernel_type = None
 
-    def fit(self, data, labels):
-        self.data = data
-        self.labels = labels
+    def fit(self, train_data, train_label):
+        self.train_data = train_data
+        self.train_label = train_label
 
-    def predict(self, data):
+    def predict(self, test_data_s):
         predictions = []
-        for i in range(len(data)):
-            distances = [
-                self.kernel_type.distance(data[i], self.data[j])
-                for j in range(len(self.data))
-            ]
+        for test_data in test_data_s:
+            distances = np.array(
+                [
+                    self.kernel_type.distance(test_data, train_data)
+                    for train_data in self.train_data
+                ]
+            )
             k_nearest = np.argsort(distances)[: self.k]
             k_nearest_labels = [self.labels[j] for j in k_nearest]
             predictions.append(
@@ -53,4 +55,4 @@ def sample():
     show_data.show(None, X_test, predictions)
 
 
-sample()
+# sample()

@@ -1,5 +1,6 @@
 from docx import Document
-from docx.shared import Inches
+
+# from docx.shared import Inches
 
 document = Document()
 
@@ -36,6 +37,19 @@ for qty, id, desc in records:
     row_cells[1].text = id
     row_cells[2].text = desc
 
-document.add_page_break()
 
-document.save("demo.docx")
+class word:
+    def __init__(self) -> None:
+        self.document = Document()
+
+    def add_heading(self, text: str, level: int = 1):
+        self.document.add_heading(text, level)
+
+    def add_paragraph(self, text: str, style: str = None):
+        self.document.add_paragraph(text, style)
+
+    def add_picture(self, path: str, width: int = None, height: int = None):
+        self.document.add_picture(path, width, height)
+
+    def save(self, path: str):
+        self.document.save(path)

@@ -2,24 +2,20 @@ import numpy as np
 
 
 class kernel:
-    def __init__(self, kernel_type: str = None) -> None:
+    def __init__(self, kernel_type: str = "simple") -> None:
         self.kernel_type = kernel_type
-        if self.kernel_type is None:
-            self.kernel_type = "simple"
 
     def simple_kernel(self, x: np.ndarray, xp: np.ndarray):
         return self.euclidean_distance(x, xp)
 
     def linear_kernel(self, x: np.ndarray, xp: np.ndarray):
-        return x @ xp.T
+        return x @ x.T + xp @ xp.T - 2 * x @ xp.T
 
     def polynomial_kernel(self, x: np.ndarray, xp: np.ndarray, d: int):
         return (self.linear_kernel(x, xp)) ** d
 
     def kernel_RBF(self, x: np.ndarray, xp: np.ndarray, sigma: float):
-        return np.exp(
-            -1 * self.euclidean_distance(x, xp) ** 2 / (2 * sigma**2)
-        )
+        return np.exp(-1 * self.euclidean_distance(x, xp) / (2 * sigma**2))
 
     def euclidean_distance(self, x: np.ndarray, xp: np.ndarray):
         return np.linalg.norm(x - xp)

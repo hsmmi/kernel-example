@@ -12,39 +12,47 @@ class kmeans:
         self.k = k
         self.max_iter = max_iter
         self.kernel_type = kernel_type
+        if self.kernel_type is not None:
+            self.kernel_type = kernel_type
+        self.centroids = {}
+
+    def fit(self, data, labels, kernel_type: kernel = None):
+        if self.kernel_type is None and kernel_type is None:
+            KeyError("Kernel type not found")
         if self.kernel_type is None:
-            self.kernel_type = kernel()
-        self.centroids = {}
+            self.kernel_type = kernel_type
+        if kernel_type is not None and self.kernel_type is not None:
+            KeyError("Kernel type already defined")
 
-    def fit(self, data):
-        self.centroids = {}
-        # initialize centroids, the first k points in the dataset
-        for i in range(self.k):
-            self.centroids[i] = data[i]
+        # Generate the k random number
+        random_index = np.random.choice(len(data), self.k, replace=False)
 
-        for i in range(self.max_iter):
-            self.classifications = {}
-            for j in range(self.k):
-                self.classifications[j] = []
+        # Initialize the centroids
+        self.centroids = {}
+        for n_centroid in range(self.k):
+            self.centroids[n_centroid] = data[random_index[n_centroid]]
+
+        for _ in range(self.max_iter):
+            self.clusterings = {}
+            for each_centroid in range(self.k):
+                self.clusterings[each_centroid] = []
 
             # calculate the distance between each point and the centroids
-            for feature in data:
+            for point in data:
                 distances = [
-                    self.kernel_type.distance(
-                        feature, self.centroids[centroid]
-                    )
+                    self.kernel_type.distance(point, self.centroids[centroid])
                     for centroid in self.centroids
                 ]
                 # find the closest centroid
                 classification = distances.index(min(distances))
                 # add the point to the closest cluster
-                self.classifications[classification].append(feature)
+                self.clusterings[classification].append(point)
 
             # calculate the new centroids
             prev_centroids = dict(self.centroids)
-            for classification in self.classifications:
+            for classification in self.clusterings:
                 self.centroids[classification] = np.average(
-                    self.classifications[classification], axis=0
+                    self.clusterings[classification], axis=0
                 )
 
             # check if the centroids have moved
@@ -99,4 +107,4 @@ def sample():
     print(conf_mat)
 
 
-sample()
+# sample()
