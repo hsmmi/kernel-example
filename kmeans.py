@@ -16,7 +16,7 @@ class kmeans:
             self.kernel_type = kernel_type
         self.centroids = {}
 
-    def fit(self, data, labels, kernel_type: kernel = None):
+    def fit(self, train_data_s, labels, kernel_type: kernel = None):
         if self.kernel_type is None and kernel_type is None:
             KeyError("Kernel type not found")
         if self.kernel_type is None:
@@ -25,12 +25,14 @@ class kmeans:
             KeyError("Kernel type already defined")
 
         # Generate the k random number
-        random_index = np.random.choice(len(data), self.k, replace=False)
+        random_index = np.random.choice(
+            len(train_data_s), self.k, replace=False
+        )
 
         # Initialize the centroids
         self.centroids = {}
         for n_centroid in range(self.k):
-            self.centroids[n_centroid] = data[random_index[n_centroid]]
+            self.centroids[n_centroid] = train_data_s[random_index[n_centroid]]
 
         for _ in range(self.max_iter):
             self.clusterings = {}
@@ -38,32 +40,39 @@ class kmeans:
                 self.clusterings[each_centroid] = []
 
             # calculate the distance between each point and the centroids
-            for point in data:
+            for train_data in train_data_s:
                 distances = [
-                    self.kernel_type.distance(point, self.centroids[centroid])
+                    self.kernel_type.distance(
+                        train_data, self.centroids[centroid]
+                    )
                     for centroid in self.centroids
                 ]
                 # find the closest centroid
-                classification = distances.index(min(distances))
-                # add the point to the closest cluster
-                self.clusterings[classification].append(point)
+                close_centroid_id = distances.index(min(distances))
+                # add the train_data to the closest cluster
+                self.clusterings[close_centroid_id].append(train_data)
 
             # calculate the new centroids
             prev_centroids = dict(self.centroids)
-            for classification in self.clusterings:
-                self.centroids[classification] = np.average(
-                    self.clusterings[classification], axis=0
+            for cluster in self.clusterings:
+                self.centroids[cluster] = np.average(
+                    self.clusterings[cluster], axis=0
                 )
 
             # check if the centroids have moved
+            # By checking if the centroids have moved
+            # we can stop the algorithm if the centroids
+            # have not moved(small change)
             optimized = True
-            for c in self.centroids:
-                original_centroid = prev_centroids[c]
-                current_centroid = self.centroids[c]
+            for centroid in self.centroids:
+                prev_centroid = prev_centroids[centroid]
+                current_centroid = self.centroids[centroid]
+
+                # check if the centroids have moved more than 0.001%
                 if (
                     np.sum(
-                        (current_centroid - original_centroid)
-                        / original_centroid
+                        abs(current_centroid - prev_centroid)
+                        / prev_centroid
                         * 100.0
                     )
                     > 0.001
@@ -73,14 +82,21 @@ class kmeans:
             if optimized:
                 break
 
-    def predict(self, data):
-        distances = [
-            self.kernel_type.distance(data, self.centroids[centroid])
-            for centroid in self.centroids
-        ]
-        classification = distances.index(min(distances))
+    def predict(self, test_data_s):
+        distances = np.array(
+            [
+                [
+                    self.kernel_type.distance(centroid, test_data)
+                    for centroid in self.centroids
+                ]
+                for test_data in test_data_s
+            ]
+        )
 
-        return classification
+        # Choose closest cluster for each test point
+        clusters = np.argmin(distances, axis=1)
+
+        return clusters
 
 
 def sample():

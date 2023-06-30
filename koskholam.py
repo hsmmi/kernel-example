@@ -21,7 +21,7 @@ for file in ds_file:
     print("Dataset: ", file)
 
     data, label = my_io(path).read_csv()
-
+    model = kmeans(k=2, kernel_type=kernel("linear"))
     [
         avg_accuracy_score,
         avg_f1_score,
@@ -30,7 +30,7 @@ for file in ds_file:
         avg_time,
     ] = Performance.k_fold(
         Performance(),
-        model=kmeans(k=2, kernel_type=kernel("RBF")),
+        model=model,
         data=data,
         labels=label,
         test_size=0.3,

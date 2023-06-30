@@ -49,7 +49,7 @@ class Performance:
         # scaler.fit_transform(labels)
 
         # Start time
-        start = time
+        start = time.time()
 
         for _ in range(k):
             # Split data
@@ -64,11 +64,15 @@ class Performance:
             predictions = model.predict(X_test)
 
             # Measuring performance
-            avg_accuracy_score += accuracy_score(predictions, y_test)
-            avg_f1_score += f1_score(predictions, y_test)
-            avg_precision_score += precision_score(predictions, y_test)
-            avg_recall += recall_score(predictions, y_test)
-            avg_time += time() - start
+            avg_accuracy_score += accuracy_score(y_test, predictions)
+            avg_f1_score += f1_score(
+                y_test, predictions, labels=np.unique(labels), average="micro"
+            )
+            avg_precision_score += precision_score(
+                y_test, predictions, average="micro"
+            )
+            avg_recall += recall_score(y_test, predictions, average="micro")
+            avg_time += time.time() - start
 
         # Return average performance
         return [
